@@ -17,7 +17,7 @@ from src.config.database_conn import TORTOISE_ORM_CONFIG
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -46,7 +46,8 @@ async def get_latest_history(uid: int):
     else:
         return {
             "cid": res.cid,
-            "update_time": res.update_time.strftime("%Y-%m-%d %H:%M:%S")
+            "update_date": res.update_time.strftime("%Y-%m-%d"),
+            "update_time": res.update_time.strftime("%H:%M:%S")
         }
 
 
@@ -54,13 +55,14 @@ async def get_latest_history(uid: int):
 async def get_history(uid: int):
 
     if((await history.filter(uid=uid).count()) == 0):
-        return None
+        return []
 
     res_list = []
     for res in await history.filter(uid=uid).order_by("-update_time").all():
         res_list.append({
             "cid": res.cid,
-            "update_time": res.update_time.strftime("%Y-%m-%d %H:%M:%S")
+            "update_date": res.update_time.strftime("%Y-%m-%d"),
+            "update_time": res.update_time.strftime("%H:%M:%S")
         })
 
     return res_list
