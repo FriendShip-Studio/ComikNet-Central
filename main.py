@@ -48,6 +48,7 @@ async def get_history(uid: str, page: int = 1, isReverse: bool = False):
 
     return ret_list
 
+
 @app.delete("/history")
 async def delete_history(uid: str):
     await db.delete("history", f"UID={uid}")
@@ -56,14 +57,18 @@ async def delete_history(uid: str):
 
 @app.post("/record")
 async def update_history(uid: str, cid: str):
-    if(await db.search("CID", "history", f"UID={uid}", "1", "update_time DESC"))[0][0] == cid:
-        return Response(status_code=200)
-    else:
+
+    res = await db.search("CID", "history", f"UID={uid}", "1", "update_time DESC")
+
+    if(res == () or str(res[0][0]) != cid):
         await db.insert("history", "UID,CID,update_time", f"{uid},{cid},NOW()")
+    else:
+        return Response(status_code=200)
+    
     return Response(status_code=201)
 
 
-@app.get("/tags")
+@ app.get("/tags")
 async def get_tags(uid: str):
 
     res = await db.search("tag", "tags", f"UID={uid}")
@@ -71,7 +76,7 @@ async def get_tags(uid: str):
     return res
 
 
-@app.post("/tag")
+@ app.post("/tag")
 async def update_tag(uid: str, tag: str):
     if(await db.search("tag", "tags", f"UID={uid} AND tag='{tag}'")):
         return Response(status_code=200)
@@ -80,7 +85,7 @@ async def update_tag(uid: str, tag: str):
     return Response(status_code=201)
 
 
-@app.get("/comments")
+@ app.get("/comments")
 async def get_comments(aid: str = None, uid: str = None, page: int = 1, isReverse: bool = False):
 
     if(aid and uid):
