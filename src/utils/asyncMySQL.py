@@ -33,7 +33,7 @@ class AsyncMySQL:
                     return await cur.fetchall()
         except Exception as e:
             print(e)
-            return []
+            return ()
 
     async def insert(self, table: str, column: str, value: str) -> bool:
 
