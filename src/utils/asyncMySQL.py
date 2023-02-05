@@ -47,12 +47,12 @@ class AsyncMySQL:
             print(e)
             return False
 
-    async def update(self, table: str, column: str, value: str, cond: str) -> bool:
+    async def update(self, table: str, updates: str, cond: str) -> bool:
 
         try:
             async with self.connection_pool.acquire() as conn:
                 async with conn.cursor() as cur:
-                    sql = f"UPDATE {table} SET {column} = {value} WHERE {cond}\n"
+                    sql = f"UPDATE {table} SET {updates} WHERE {cond}\n"
                     await cur.execute(sql)
             return True
         except Exception as e:

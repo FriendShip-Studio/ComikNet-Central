@@ -34,19 +34,38 @@ async def shutdown():
     await db.close()
 
 
-@app.get("/history")
+@app.get("/history/user")
 async def get_history(uid: str, page: int = 1, isReverse: bool = False):
 
-    res = await db.search("CID,update_time", "history", f"UID={uid}",
+    res = await db.search("AID,CID,update_time", "history", f"UID={uid}",
                           f"{(page-1)*20},{page*20}",
                           f"update_time {'ASC' if isReverse else 'DESC'}")
 
     ret_list = [{
-        "cid": item[0],
-        "update_time":parseDateTime(item[1])
+        "aid": item[0],
+        "cid": item[1],
+        "update_time":parseDateTime(item[2])
     } for item in res]
 
     return ret_list
+
+
+@app.get("/history/album")
+async def get_history(aid: int, isReverse: bool = False):
+
+    res = await db.search("UID,CID,update_time", "history", f"AID={aid}",
+                          sort=f"update_time {'ASC' if isReverse else 'DESC'}")
+
+    if res == ():
+        return None
+
+    ret_dict = {
+        "uid": res[0][0],
+        "cid": res[0][1],
+        "update_time": parseDateTime(res[0][2])
+    }
+
+    return ret_dict
 
 
 @app.delete("/history")
@@ -56,15 +75,15 @@ async def delete_history(uid: str):
 
 
 @app.post("/record")
-async def update_history(uid: str, cid: str):
+async def update_history(uid: str, aid: int, cid: int):
 
-    res = await db.search("CID", "history", f"UID={uid}", "1", "update_time DESC")
+    res = await db.search("*", "history", f"UID={uid} and AID={aid}", "1", "update_time DESC")
 
-    if(res == () or str(res[0][0]) != cid):
-        await db.insert("history", "UID,CID,update_time", f"{uid},{cid},NOW()")
+    if(res == ()):
+        await db.insert("history", "UID,AID,CID,update_time", f"{uid},{aid},{cid},NOW()")
     else:
-        return Response(status_code=200)
-    
+        await db.update("history", f"CID={cid}, update_time=NOW()", f"UID={uid} and AID={aid}")
+
     return Response(status_code=201)
 
 
