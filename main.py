@@ -4,7 +4,7 @@ if sys.platform != "win32":
     import uvloop
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
-from fastapi import FastAPI, Response, Depends
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.utils.asyncMySQL import AsyncMySQL
@@ -87,7 +87,7 @@ async def update_history(uid: str, aid: int, cid: int):
     return Response(status_code=201)
 
 
-@ app.get("/tags")
+@app.get("/tags")
 async def get_tags(uid: str):
 
     res = await db.search("tag", "tags", f"UID={uid}")
@@ -95,7 +95,7 @@ async def get_tags(uid: str):
     return res
 
 
-@ app.post("/tag")
+@app.post("/tag")
 async def update_tag(uid: str, tag: str):
     if(await db.search("tag", "tags", f"UID={uid} AND tag='{tag}'")):
         return Response(status_code=200)
@@ -104,7 +104,7 @@ async def update_tag(uid: str, tag: str):
     return Response(status_code=201)
 
 
-@ app.get("/comments")
+@app.get("/comments")
 async def get_comments(aid: str = None, uid: str = None, page: int = 1, isReverse: bool = False):
 
     if(aid and uid):
