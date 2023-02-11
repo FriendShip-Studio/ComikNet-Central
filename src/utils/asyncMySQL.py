@@ -1,5 +1,6 @@
 import aiomysql
 
+# 不要忘记配置 DB_CONFIG
 from src.config.database_conn import DB_CONFIG
 
 
@@ -8,7 +9,8 @@ class AsyncMySQL:
     async def init(self) -> None:
 
         try:
-            self.connection_pool: aiomysql.Pool = await aiomysql.create_pool(**DB_CONFIG, autocommit=True)
+            self.connection_pool: aiomysql.Pool = await aiomysql.create_pool(**DB_CONFIG, autocommit=True,
+                                                                             pool_recycle=300)
         except Exception as e:
             print("尝试创建连接池时出错: ", e)
 

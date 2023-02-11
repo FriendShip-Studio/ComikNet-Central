@@ -8,7 +8,6 @@ from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.utils.asyncMySQL import AsyncMySQL
-from src.utils.parseDateTime import parseDateTime
 
 
 app = FastAPI()
@@ -40,21 +39,22 @@ async def get_history(uid: str, page: int = 1, isReverse: bool = False):
     res = await db.search("AID,CID,update_time", "history", f"UID={uid}",
                           f"{(page-1)*20},{page*20}",
                           f"update_time {'ASC' if isReverse else 'DESC'}")
+    
 
     ret_list = [{
         "aid": item[0],
         "cid": item[1],
-        "update_time":parseDateTime(item[2])
+        "update_time":item[2].strftime("%Y-%m-%d %H:%M:%S")
     } for item in res]
 
     return ret_list
 
 
 @app.get("/history/album")
-async def get_history(aid: int, isReverse: bool = False):
+async def get_history(uid: int, aid: int):
 
-    res = await db.search("UID,CID,update_time", "history", f"AID={aid}",
-                          sort=f"update_time {'ASC' if isReverse else 'DESC'}")
+    res = await db.search("UID,CID,update_time", "history", f"UID={uid} and AID={aid}",
+                          sort=f"update_time ASC")
 
     if res == ():
         return None
@@ -62,7 +62,7 @@ async def get_history(aid: int, isReverse: bool = False):
     ret_dict = {
         "uid": res[0][0],
         "cid": res[0][1],
-        "update_time": parseDateTime(res[0][2])
+        "update_time": res[0][2].strftime("%Y-%m-%d %H:%M:%S")
     }
 
     return ret_dict
@@ -124,7 +124,7 @@ async def get_comments(aid: str = None, uid: str = None, page: int = 1, isRevers
         "uid": item[0],
         "aid": item[1],
         "comment": item[2],
-        "comment_time": parseDateTime(item[3])
+        "comment_time":item[3].strftime("%Y-%m-%d %H:%M:%S")
     } for item in res]
 
     return ret_list
